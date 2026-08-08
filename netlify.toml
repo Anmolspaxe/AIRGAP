@@ -1,0 +1,39 @@
+# Netlify config for Airgap — a static, single-file app.
+# No build step needed: this just publishes index.html as-is.
+
+[build]
+  publish = "."
+
+# Basic security headers — safe defaults that won't break anything.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Don't cache index.html itself so updates show up immediately;
+# everything else (fonts, etc.) can cache normally.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# ---
+# NOTE on Cross-Origin-Opener-Policy / Cross-Origin-Embedder-Policy:
+# These two headers unlock multi-threaded WASM (faster CPU-fallback mode),
+# but require EVERY cross-origin script Airgap loads (WebLLM, transformers.js,
+# pdf.js, mammoth.js, Google Fonts, Tailwind CDN) to send matching CORS
+# headers back — if even one doesn't, the browser blocks it and the whole
+# page breaks instead of just running slower. Deliberately left out here.
+# If you want to experiment with it later, once you've deployed and confirmed
+# everything works normally, try adding:
+#
+# [[headers]]
+#   for = "/*"
+#   [headers.values]
+#     Cross-Origin-Opener-Policy = "same-origin"
+#     Cross-Origin-Embedder-Policy = "require-corp"
+#
+# ...and test thoroughly (WebGPU mode, WASM mode, RAG file upload) before
+# relying on it for a demo.
